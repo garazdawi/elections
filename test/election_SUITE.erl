@@ -57,7 +57,9 @@ contract(_) ->
       end, 0),
     ok = vote_chain:vote(125, "kalle anka", riksdag),
     ok = vote_chain:vote(126, "kalle anka", riksdag),
-    error = vote_chain:vote(127, "kalle anka", riksdag).
+    ok = vote_chain:vote(127, "kalle anka", riksdag),
+    error = vote_chain:vote(127, "kalle anka", riksdag),
+    error = vote_chain:vote(128, "kalle anka", riksdag).
 
 unique(#vote{ vote_type = VT, personnummer = PN } = V, Acc) ->
     ct:pal("Vote: ~p", [V]),
