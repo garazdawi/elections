@@ -11,9 +11,9 @@
 
 -record(vote, {personnummer :: pos_integer(),
 	       partiet :: string(),
-	       vote_type :: riksdag | lansting | kommun}).
+	       vote_type :: riksdag | lansting | kommun,
+	       locality :: string()}).
 
--record(block_header, {nonce :: pos_integer(),
-		       votes=[] :: list()}).
+-record(block, {nonce :: pos_integer(),
+		votes=[] :: list()}).
 
--record(block, {slot, block_hash}).

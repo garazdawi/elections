@@ -28,7 +28,9 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    {ok, { {one_for_all, 0, 1}, []} }.
+    ChildSpec = #{id => "",
+                start => {vote_chain, start_link, []}},
+    {ok, { {one_for_one, 1, 5}, [ChildSpec]} }.
 
 %%====================================================================
 %% Internal functions
