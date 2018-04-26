@@ -95,25 +95,31 @@ handle_call({count_votes, VoteType, Locality}, _From,
     TotalVotes = count_votes(VoteType, Locality, BHHandle, BCHandle),
     {reply, TotalVotes, State};
 
-handle_call({add_contract, Id, Fun, ContractState}, _From, State = #state{blockchain_handle = BCHandle,
-							  blockheader_handle = BHHandle,
-							  private_key = PrivateKey,
-							  public_key = PublicKey}) ->
+handle_call({add_contract, Id, Fun, ContractState}, _From,
+	    	State = #state{blockchain_handle = BCHandle,
+			       blockheader_handle = BHHandle,
+			       private_key = PrivateKey,
+			       public_key = PublicKey}) ->
     #block{contracts = Contracts} = get_last_block(BCHandle, BHHandle),
     Contract = #contract{id = Id, function = Fun, state = ContractState},
+    NewState = run_contract(Contract, BCHandle, BHHandle),
     NewContracts =
     case lists:keyfind(Id, #contract.id, Contracts) of
-	false -> [Contract | Contracts];
-	OldContract -> lists:keyreplace(Id, #contract.id, Contracts, OldContract#contract{function = Fun})
+	false -> [Contract#contract{state = NewState} | Contracts];
+	OldContract -> lists:keyreplace(Id, #contract.id, Contracts,
+					OldContract#contract{state = NewState,
+							     function = Fun})
     end,
     ct:pal("New contracts: ~p", [NewContracts]),
     {LastSlot, LastBlockHash} = get_last_slot_and_blockhash(BCHandle),
-    {BlockHash, Block} = create_block(LastBlockHash, [], NewContracts, PrivateKey, PublicKey),
+    {BlockHash, Block} = create_block(LastBlockHash, [], NewContracts,
+				      PrivateKey, PublicKey),
     write_block(LastSlot+1, BCHandle, BHHandle, Block, BlockHash),
     {reply, ok, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
+
 
 handle_cast(_Request, State) ->
     {noreply, State}.
@@ -138,14 +144,10 @@ get_last_block(BCHandle, BHHandle) ->
 
 get_last_slot_and_blockhash(BCHandle) ->
     LastSlot = dets:info(BCHandle, size),
-%    ct:pal("last slot: ~p", [LastSlot]),
-%    ct:pal("R: ~p", [dets:lookup(BCHandle, LastSlot)]),
     [{LastSlot, LastBlockHash}] = dets:lookup(BCHandle, LastSlot),
     {LastSlot, LastBlockHash}.
 
 count_votes(RequiredVoteType, RequiredLocality, BHHandle, BCHHandle) ->
-%    ct:pal("rq_vote_type: ~p", [RequiredVoteType]),
-%    ct:pal("req_locality: ~p", [RequiredLocality]),
     dets:foldl(
 	fun({_Slot, BlockHash}, Acc) ->
 	    [{BlockHash, #block{votes = Votes}}] = dets:lookup(BHHandle, BlockHash),
@@ -163,20 +165,18 @@ count_votes(RequiredVoteType, RequiredLocality, BHHandle, BCHHandle) ->
 	maps:new(), BCHHandle).
 
 
-had_already_voted(#vote{personnummer = Personnummer, vote_type = VoteType}, BHHandle, BCHHandle) ->
+run_contract(#contract{function = Function, state = State},
+	     BCHandle, BHHandle) ->
     dets:foldl(
-	fun({_Slot, BlockHash}, Acc)->
+	fun({_Slot, BlockHash}, Acc) ->
 	    [{BlockHash, #block{votes = Votes}}] = dets:lookup(BHHandle, BlockHash),
-	    Acc orelse
-	    lists:any(fun(Vote)->
-		case Vote of
-		    #vote{personnummer = Personnummer,
-			  vote_type = VoteType} -> true;
-		    _ -> false
-		end
-		      end, Votes)
+	    lists:foldl(fun(#vote{vote_type = VoteType,
+				  partiet   = Partiet,
+				  locality  = Locality} = Vote, Acc1) ->
+		Function(Vote, Acc1)
+			end, Acc, Votes)
 	end,
-	false, BCHHandle).
+	State, BCHandle).
 
 
 create_block(PreviousBlockHash, Votes, Contracts, PrivateKey, PublicKey) ->

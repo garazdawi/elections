@@ -62,8 +62,6 @@ contract(_) ->
     error = vote_chain:vote(128, "kalle anka", riksdag).
 
 unique(#vote{ vote_type = VT, personnummer = PN } = V, Acc) ->
-    ct:pal("Vote: ~p", [V]),
-    ct:pal("Acc: ~p", [Acc]),
     VTAcc = maps:get(VT, Acc),
     case lists:member(PN, VTAcc) of
         false ->
