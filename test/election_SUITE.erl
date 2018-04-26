@@ -1,12 +1,13 @@
 -module(election_SUITE).
 
--export_all().
+-compile(export_all).
 
 all() ->
     [vote].
 
-init_per_testcase(_, _) ->
-    application:start(elections).
+init_per_testcase(_, Config) ->
+    application:start(elections),
+    Config.
 
 end_per_testcase(_, _) ->
     application:stop(elections).
