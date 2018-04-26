@@ -34,5 +34,5 @@ vote(_) ->
       "tjatte" := 1} = vote_chain:count_votes(riksdag),
     #{"kalle anka" := 3, "tjatte" := 1,
       "joakim" := 1, "sigge" := 2} = vote_chain:count_votes(kommun, "ankeborg"),
-    #{"sigge" := 1} = vote_chain:count_votes(kommun, "gåseborg"),
+    #{} = vote_chain:count_votes(kommun, "gåseborg"),
     ok.
