@@ -27,7 +27,7 @@ vote(_) ->
     ok = vote_chain:vote(126, "tjatte", kommun, "ankeborg"),
     ok = vote_chain:vote(127, "joakim", kommun, "ankeborg"),
     ok = vote_chain:vote(128, "sigge", kommun, "ankeborg"),
-    error = vote_chain:vote(129, "sigge", kommun, "gåseborg"),
+    error = vote_chain:vote(127, "sigge", kommun, "gåseborg"),
     ok = vote_chain:vote(130, "sigge", kommun, "ankeborg"),
     error = vote_chain:vote(128, "sigge", kommun, "ankeborg"),
     #{"kalle anka" := 2, "knatte" := 1,
