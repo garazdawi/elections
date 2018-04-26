@@ -10,7 +10,7 @@ init_per_testcase(_, Config) ->
     Config.
 
 end_per_testcase(_, _) ->
-    vote_chain:clear(),
+    vote_chain:clear_tables(),
     application:stop(elections).
 
 vote(_) ->
