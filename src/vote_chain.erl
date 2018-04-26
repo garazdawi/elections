@@ -55,16 +55,21 @@ init([]) ->
     {ok, #state{blockchain_handle = BlockchainHandle,
 		blockheader_handle = BlockHeadersHandle}}.
 
-handle_call(#vote{} = Vote, From, State = #state{blockchain_handle = BCHandle,
+handle_call(#vote{} = Vote, _From, State = #state{blockchain_handle = BCHandle,
 						 blockheader_handle = BHHandle}) ->
-    LastSlot = get_last_slot(BCHandle),
-    <<Nonce:64, _Tail/binary>> = crypto:strong_rand_bytes(40),
-    Block = #block{nonce = Nonce, votes = [Vote]},
-    BlockHash = crypto:hash(md4, erlang:term_to_binary(Block)),
-    Slot = LastSlot + 1,
-    ok = dets:insert(BHHandle, {BlockHash, Block}),
-    ok = dets:insert(BCHandle, {Slot, BlockHash}),
-    {reply, ok, State};
+    case had_already_voted(Vote, BHHandle, BCHandle) of
+	false ->
+	    LastSlot = get_last_slot(BCHandle),
+	    <<Nonce:64, _Tail/binary>> = crypto:strong_rand_bytes(40),
+	    Block = #block{nonce = Nonce, votes = [Vote]},
+	    BlockHash = crypto:hash(md4, erlang:term_to_binary(Block)),
+	    Slot = LastSlot + 1,
+	    ok = dets:insert(BHHandle, {BlockHash, Block}),
+	    ok = dets:insert(BCHandle, {Slot, BlockHash}),
+	    {reply, ok, State};
+	true ->
+	    {reply, error, State}
+    end;
 
 handle_call({count_votes, VoteType, Locality}, _From,
 	    	State = #state{blockchain_handle = BCHandle,
@@ -110,6 +115,20 @@ count_votes(RequiredVoteType, RequiredLocality, BHHandle, BCHHandle) ->
 	    end
 	end,
 	maps:new(), BCHHandle).
+
+
+had_already_voted(#vote{personnummer = Personnummer, vote_type = VoteType,
+			locality = Locality}, BHHandle, BCHHandle) ->
+    dets:foldl(
+	fun({_Slot, BlockHash}, Acc)->
+	    [{BlockHash, #block{votes = [Vote]}}] = dets:lookup(BHHandle, BlockHash),
+	    case Vote of
+		#vote{personnummer = Personnummer,
+		      vote_type = VoteType} when Acc == false -> true;
+		_ -> Acc
+	    end
+	end,
+	false, BCHHandle).
 
 
 clear_tables() ->
