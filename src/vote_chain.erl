@@ -132,5 +132,9 @@ had_already_voted(#vote{personnummer = Personnummer, vote_type = VoteType,
 
 
 clear_tables() ->
+    {ok, BlockchainHandle} = dets:open_file(blocks, [{file, "/tmp/val_2018_blocks.dets"}]),
+    {ok, BlockHeadersHandle} = dets:open_file(blockheaders, [{file, "/tmp/val_2018_block_headers.dets"}]),
     ok = dets:delete_all_objects(blocks),
-    ok = dets:delete_all_objects(blockheaders).
+    ok = dets:delete_all_objects(blockheaders),
+    dets:close(blocks),
+    dets:close(blockheaders).

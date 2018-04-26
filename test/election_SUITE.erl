@@ -6,8 +6,8 @@ all() ->
     [vote].
 
 init_per_testcase(_, Config) ->
-    application:start(elections),
     vote_chain:clear_tables(),
+    application:start(elections),
     Config.
 
 end_per_testcase(_, _) ->
