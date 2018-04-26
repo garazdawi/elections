@@ -1,19 +1,17 @@
--module(election_test).
+-module(election_SUITE).
 
--export([test/0]).
+-export_all().
 
-test() ->
-    [run_test(F) || F <- tests()].
+all() ->
+    [vote].
 
-run_test(F) ->
-    application:start(elections),
-    F(),
+init_per_testcase(_, _) ->
+    application:start(elections).
+
+end_per_testcase(_, _) ->
     application:stop(elections).
 
-tests() ->
-    [fun vote/0].
-
-vote() ->
+vote(_) ->
     ok = vote_chain:vote(123, "kalle anka", riksdag),
     ok = vote_chain:vote(124, "kalle anka", riksdag),
     #{"kalle anka" := 2} = vote_chain:count_votes(riksdag, undefined),
