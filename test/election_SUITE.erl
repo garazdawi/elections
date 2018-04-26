@@ -7,10 +7,10 @@ all() ->
 
 init_per_testcase(_, Config) ->
     application:start(elections),
+    vote_chain:clear_tables(),
     Config.
 
 end_per_testcase(_, _) ->
-    vote_chain:clear_tables(),
     application:stop(elections).
 
 vote(_) ->

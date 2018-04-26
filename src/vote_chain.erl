@@ -113,5 +113,5 @@ count_votes(RequiredVoteType, RequiredLocality, BHHandle, BCHHandle) ->
 
 
 clear_tables() ->
-    dets:delete(blocks),
-    dets:delete(blockheaders).
+    ok = dets:delete_all_objects(blocks),
+    ok = dets:delete_all_objects(blockheaders).
