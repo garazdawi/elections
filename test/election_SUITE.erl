@@ -15,7 +15,9 @@ end_per_testcase(_, _) ->
 vote(_) ->
     ok = vote_chain:vote(123, "kalle anka", riksdag),
     ok = vote_chain:vote(124, "kalle anka", riksdag),
-    #{"kalle anka" := 2} = vote_chain:count_votes(riksdag, undefined),
-    ok = vote_chain:vote(124, "kalle anka", riksdag),
-    #{"kalle anka" := 2} = vote_chain:count_votes(riksdag, undefined),
+    #{"kalle anka" := 2} = vote_chain:count_votes(riksdag),
+    error = vote_chain:vote(124, "kalle anka", riksdag),
+    #{"kalle anka" := 2} = vote_chain:count_votes(riksdag),
+    ok = vote_chain:vote(123, "kalle anka", lansting, "vg"),
+    ok = vote_chain:vote(124, "kalle anka", lansting, "vg"),
     ok.
