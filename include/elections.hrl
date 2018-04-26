@@ -1,10 +1,3 @@
-%%%-------------------------------------------------------------------
-%%% @copyright (C) 2018, <COMPANY>
-%%% @doc
-%%%
-%%% @end
-%%% Created : 26. Apr 2018 10:06
-%%%-------------------------------------------------------------------
 
 -record(person, {personnummer :: pos_integer(),
 		 kommun :: string()}).
@@ -14,6 +7,9 @@
 	       vote_type :: riksdag | lansting | kommun,
 	       locality :: string()}).
 
--record(block, {nonce :: pos_integer(),
+-record(block, {previous_blockhash :: binary(),
+		nonce :: pos_integer(),
+		signature :: binary(),
+		public_key :: binary(),
 		votes=[] :: list()}).
 
