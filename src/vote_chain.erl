@@ -83,7 +83,9 @@ handle_call(#vote{} = Vote, _From, State = #state{blockchain_handle = BCHandle,
 					      PrivateKey, PublicKey),
 	    write_block(LastSlot+1, BCHandle, BHHandle, Block, BlockHash),
 	    {reply, ok, State}
-    catch _:_ -> {reply, error, State}
+    catch E:R ->
+            ct:pal("~p:~p:~p",[E,R,erlang:get_stacktrace()]),
+            {reply, error, State}
     end;
 
 

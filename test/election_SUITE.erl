@@ -16,7 +16,8 @@ end_per_testcase(_, _) ->
     application:stop(elections).
 
 vote(_) ->
-    vote_chain:add_contract(has_voted, fun unique/2, []),
+    vote_chain:add_contract(has_voted, fun unique/2,
+                            #{ riksdag => [], lansting => [], kommun => []}),
     ok = vote_chain:vote(123, "kalle anka", riksdag),
     ok = vote_chain:vote(124, "kalle anka", riksdag),
     #{"kalle anka" := 2} = vote_chain:count_votes(riksdag),
@@ -41,7 +42,8 @@ vote(_) ->
     ok.
 
 contract(_) ->
-    vote_chain:add_contract(has_voted, fun unique/2, []),
+    vote_chain:add_contract(has_voted, fun unique/2, 
+                            #{ riksdag => [], lansting => [], kommun => []}),
     ok = vote_chain:vote(123, "kalle anka", riksdag),
     ok = vote_chain:vote(124, "kalle anka", riksdag),
     vote_chain:add_contract(
@@ -57,10 +59,11 @@ contract(_) ->
     ok = vote_chain:vote(126, "kalle anka", riksdag),
     error = vote_chain:vote(127, "kalle anka", riksdag).
 
-unique(#vote{ personnummer = PN } = V, Acc) ->
+unique(#vote{ vote_type = VT, personnummer = PN } = V, Acc) ->
     ct:pal("Vote: ~p", [V]),
     ct:pal("Acc: ~p", [Acc]),
-    case lists:member(PN, Acc) of
+    VTAcc = maps:get(VT, Acc),
+    case lists:member(PN, VTAcc) of
         false ->
-            [PN | Acc]
+            maps:put(VT, [PN | VTAcc], Acc)
     end.
