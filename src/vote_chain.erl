@@ -11,7 +11,8 @@
  -include_lib("elections/include/elections.hrl").
 
 %% API
--export([start_link/0, vote/3, vote/4, count_votes/1, count_votes/2, clear_tables/0]).
+-export([start_link/0, vote/3, vote/4, count_votes/1, count_votes/2, clear_tables/0,
+         contract/3]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -44,6 +45,10 @@ count_votes(riksdag) ->
 
 count_votes(VoteType, Locality) ->
     gen_server:call(?SERVER, {count_votes, VoteType, Locality}, infinity).
+
+-spec contract(term(), fun(#vote{}, term()) -> term(), term()) -> ok.
+contract(Id, Fun, Init) ->
+    gen_server:call(?SERVER, Id, Fun, Init).
 
 %%%===================================================================
 %%% gen_server callbacks

@@ -2,8 +2,10 @@
 
 -compile(export_all).
 
+-include_lib("elections/include/elections.hrl").
+
 all() ->
-    [vote].
+    [vote, contract].
 
 init_per_testcase(_, Config) ->
     vote_chain:clear_tables(),
@@ -36,3 +38,19 @@ vote(_) ->
       "joakim" := 1, "sigge" := 2} = vote_chain:count_votes(kommun, "ankeborg"),
     #{} = vote_chain:count_votes(kommun, "gåseborg"),
     ok.
+
+contract(_) ->
+    ok = vote_chain:vote(123, "kalle anka", riksdag),
+    ok = vote_chain:vote(124, "kalle anka", riksdag),
+    vote_chain:contract(
+      riksdag_max,
+      fun(#vote{ vote_type = riksdag }, Acc) ->
+              if Acc < 5 ->
+                      Acc + 1
+              end;
+         (_, Acc) ->
+              Acc
+      end, 0),
+    ok = vote_chain:vote(125, "kalle anka", riksdag),
+    ok = vote_chain:vote(126, "kalle anka", riksdag),
+    error = vote_chain:vote(127, "kalle anka", riksdag).
